@@ -1,0 +1,147 @@
+# ============================================
+# BREAST CANCER PREDICTION USING SVM
+# Dataset: data.csv
+# ============================================
+
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.svm import SVC
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    classification_report
+)
+
+# ============================================
+# STEP 1: LOAD DATASET
+# ============================================
+
+df = pd.read_csv("data.csv")
+
+print("First 5 Rows")
+print(df.head())
+
+print("\nDataset Shape:", df.shape)
+
+# ============================================
+# STEP 2: DATA CLEANING
+# ============================================
+
+# Drop unnecessary columns
+if "id" in df.columns:
+    df.drop("id", axis=1, inplace=True)
+
+if "Unnamed: 32" in df.columns:
+    df.drop("Unnamed: 32", axis=1, inplace=True)
+
+# Convert diagnosis
+# M = 0 (Malignant)
+# B = 1 (Benign)
+
+df["diagnosis"] = df["diagnosis"].map({
+    "M": 0,
+    "B": 1
+})
+
+# ============================================
+# STEP 3: FEATURES AND TARGET
+# ============================================
+
+X = df.drop("diagnosis", axis=1)
+y = df["diagnosis"]
+
+print("\nFeatures Shape:", X.shape)
+print("Target Shape:", y.shape)
+
+# ============================================
+# STEP 4: TRAIN TEST SPLIT
+# ============================================
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.20,
+    random_state=42,
+    stratify=y
+)
+
+# ============================================
+# STEP 5: BUILD MODEL
+# ============================================
+
+model = Pipeline([
+    ("scaler", StandardScaler()),
+    ("svm", SVC(
+        kernel="rbf",
+        C=10,
+        gamma="scale"
+    ))
+])
+
+# ============================================
+# STEP 6: TRAIN MODEL
+# ============================================
+
+model.fit(X_train, y_train)
+
+print("\nModel Trained Successfully!")
+
+# ============================================
+# STEP 7: PREDICTION
+# ============================================
+
+y_pred = model.predict(X_test)
+
+# ============================================
+# STEP 8: EVALUATION
+# ============================================
+
+accuracy = accuracy_score(y_test, y_pred)
+
+print("\n==============================")
+print("MODEL PERFORMANCE")
+print("==============================")
+
+print(f"Accuracy : {accuracy*100:.2f}%")
+
+print("\nConfusion Matrix")
+print(confusion_matrix(y_test, y_pred))
+
+print("\nClassification Report")
+print(classification_report(y_test, y_pred))
+
+# ============================================
+# STEP 9: SAMPLE PREDICTION
+# ============================================
+
+sample = X.iloc[[0]]
+
+prediction = model.predict(sample)
+
+print("\n==============================")
+print("SAMPLE PREDICTION")
+print("==============================")
+
+if prediction[0] == 0:
+    print("Prediction : Malignant (Cancer)")
+else:
+    print("Prediction : Benign (No Cancer)")
+
+# ============================================
+# STEP 10: PREDICT NEW PATIENT
+# ============================================
+
+# Uncomment below to predict another row
+#
+# new_patient = X.iloc[[10]]
+# result = model.predict(new_patient)
+#
+# if result[0] == 0:
+#     print("Cancer")
+# else:
+#     print("No Cancer")
+
+print("\nProgram Completed Successfully!")
